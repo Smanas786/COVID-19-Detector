@@ -1,4 +1,5 @@
 
+# Importing all the necessary libraries
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.applications import VGG16
 from tensorflow.keras.layers import AveragePooling2D
@@ -24,6 +25,7 @@ from sklearn import metrics
 from sklearn.metrics import confusion_matrix, roc_curve
 import itertools
 
+# for plotting confusion matrix
 def plot_confusion_matrix(cm, classes,
                           normalize=False,
                           title='Confusion matrix',
@@ -51,45 +53,40 @@ def plot_confusion_matrix(cm, classes,
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
 
+# initialize
 INIT_LR = 1e-3
 EPOCHS = 32
 BS = 8
 
-print("[INFO] loading images...")
+print("loading images...")
 imagePaths = list(paths.list_images(".\Latest"))
 data = []
 labels = []
 
-# loop over the image paths
+# Checek all the images
 for imagePath in imagePaths:
 	# extract the class label from the filename
 	label = imagePath.split(os.path.sep)[-2]
-
-	# load the image, swap color channels, and resize it to be a fixed
-	# 224x224 pixels while ignoring aspect ratio
+	# 224x224 pixels resizing images
 	image = cv2.imread(imagePath)
 	image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 	image = cv2.resize(image, (224, 224))
-
-	# update the data and labels lists, respectively
+	
 	data.append(image)
 	labels.append(label)
 
 data = np.array(data) / 255.0
 labels = np.array(labels)
 
-# perform one-hot encoding on the labels - optional
-lb = LabelBinarizer()
-labels = lb.fit_transform(labels)
-labels = to_categorical(labels)
-
-# partition 80-20 ratio
+# partition 80-20 % ratio
 (trainX, testX, trainY, testY) = train_test_split(data, labels,
 	test_size=0.20, stratify=labels, random_state=42)
 
 # initialize the training data augmentation object
+# all are not required and may lead to low accuracy
+# for experimenting purpose
 trainAug = ImageDataGenerator(
-	rotation_range=15,
+       rotation_range=15,
        zca_whitening=False,  # apply ZCA whitening
        width_shift_range=0.2,  # randomly shift images horizontally (fraction of total width)
        height_shift_range=0.2,  # randomly shift images vertically (fraction of total height)
@@ -101,9 +98,12 @@ trainAug = ImageDataGenerator(
     )
 
 # load the VGG16 network
+#using ImageNet or ResNet50
+# resnet50_weights_tf_dim_ordering_tf_kernels.h5
 baseModel = VGG16(weights="imagenet", include_top=False,
 	input_tensor=Input(shape=(224, 224, 3)))
 
+# preds=baseModel.predict(test_data)
 # construct the head of the model that will be placed on top of the
 # the base model
 headModel = baseModel.output
@@ -121,13 +121,13 @@ for layer in baseModel.layers:
 	layer.trainable = False
 
 # compile
-print("[INFO] compiling model...")
+print("compiling model...")
 opt = Adam(lr=INIT_LR, decay=INIT_LR / EPOCHS)
 model.compile(loss="binary_crossentropy", optimizer=opt,
 	metrics=["accuracy"])
 
 # head
-print("[INFO] training head...")
+print("training head...")
 H = model.fit(
 	trainAug.flow(trainX, trainY, batch_size=BS),
 	steps_per_epoch=len(trainX) // BS,
@@ -136,7 +136,7 @@ H = model.fit(
 	epochs=EPOCHS)
 
 # make predictions on the testing set
-print("[INFO] evaluating network...")
+print("evaluating network...")
 predIdxs = model.predict(testX, batch_size=BS)
 
 # for each image in the testing set we need to find the index of the
