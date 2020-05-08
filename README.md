@@ -7,7 +7,7 @@ X-ray images of COVID-19 patients are used by doctors to diagnose pneumonia, lun
 and since corona virus attack the epithelial cell that line our respiratory tracts, we can use X-ray to analyze the health of a patient’s lungs
 # Limitation
 Posteroanterior (PA) x-ray view is used to aid diagnosis of acute and chronic conditions hence this is the best suited view for detection of any internal linings in the respiratory tracts. Also, the dataset from Kaggle repository only contains X-ray images with PA view hence Dr. Cohen repository images should also contain the same view for the normalization of the input data.
-# Data Augmentation
+# LowDataset: Data Augmentation
 As there is an scarcity of COVID-19 X-ray Images, hence in order to train our model with great accuracy, we need more images
 One way to do so is to make minor alteration to our dataset such as flip or rotations. This way neural network will think these are distant images. This method is called data augmentation 
 It also reduce the problem of overfitting on model as it increase the number of images in dataset or in other words Data Augmentation prevents overfitting by modifying limited datasets to possess the characteristics of big data (variety)
